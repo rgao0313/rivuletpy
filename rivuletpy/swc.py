@@ -14,7 +14,7 @@ class SWC(object):
     def add(self, swc_nodes):
         np.vstack((self._data, swc_nodes))
 
-    def add_branch(self, branch, pidx=None, random_color=True):
+    def add_branch(self, branch, pidx=None, random_color=False):
         '''
         Add a branch to swc.
         Note: This swc is special with N X 8 shape. The 8-th column is the online confidence
@@ -41,7 +41,7 @@ class SWC(object):
             else:
                 pid = id_start + i + 1
                 if i == 0:
-                    nodetype = 6  # Endpoint
+                    nodetype =6# Endpoint
 
             assert(pid != id)
             new_branch[i] = np.asarray([
@@ -188,6 +188,7 @@ class SWC(object):
 
         line_color = [random(), random(), random()]
         for i in range(self._data.shape[0]):
+            # print(self._data.shape[0])
             # Change color if its a bifurcation 
             if (self._data[i, 0] == self._data[:, -1]).sum() > 1:
                 line_color = [random(), random(), random()]

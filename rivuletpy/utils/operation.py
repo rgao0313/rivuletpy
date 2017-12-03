@@ -4,10 +4,10 @@ from rivuletpy.utils.cropswc import *
 import multiprocessing as mp
 import time
 
-origintif="/home/rong/Documents/Gold166-JSON/silkmothutokyo/2.tif"
-cropx=100
+origintif="/home/neuron/桌面/test/2.tif"
+cropx=200
 cropy=100
-thresholdt=40
+thresholdt=10
 percentage=0.00005
 folder=origintif.split('.')[0]+'_'+str(cropx)+'_'+str(cropy)
 cropimg(cropx,cropy,origintif)
