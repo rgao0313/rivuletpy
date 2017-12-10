@@ -56,6 +56,64 @@ class SWC(object):
 
         self._data = np.vstack((self._data, new_branch))
 
+    def add_branch2(self, path,border,branch, pidx=None, random_color=False):
+        '''
+        Add a branch to swc.
+        Note: This swc is special with N X 8 shape. The 8-th column is the online confidence
+        '''
+        print('we are at branch2 now')
+        cropx = 200\
+            # int(path.split('/')[-2].split('_')[-2])
+        cropy =100 \
+            # int(path.split('/')[-2].split('_')[-1])
+
+        a = int(path.split("_")[1])
+        b = int(path.split("_")[0])
+        fanwei1 = b * cropx - cropx + border
+        fanwei2 = b * cropx - border
+        fw1 = a * cropy - cropy + border
+        fw2 = a * cropy - border
+
+        if random_color:
+            rand_node_type = randrange(256)
+
+        new_branch = np.zeros((len(branch.pts), 8))
+        id_start = 1 if self._data.shape[0] == 1 else self._data[:, 0].max() + 1
+
+        for i in range(len(branch.pts)):
+            p, r, c = branch.pts[i], branch.radius[i], branch.conf[i]
+            # print("points",p)
+            id = id_start + i
+            # 3 for basal dendrite; 4 for apical dendrite;
+            # However now we cannot differentiate them automatically
+            nodetype = 3
+
+            if i == len(branch.pts) - 1:  # The end of this branch
+                pid = self._data[pidx, 0] if pidx is not None else -2
+                if pid is not -2 and pid != 0 and self._data.shape[0] != 1:
+                    # Its connected node is fork point
+                    self._data[self._data[:, 0] == pid, 1] = 5
+            else:
+                pid = id_start + i + 1
+                if i == 0:
+                    nodetype=8
+                    if ((p[0] not in range( border, cropx - border)) or (p[1] not in range( border, cropy - border))):
+                        nodetype = 6  # Endpoint
+
+                        # print(p[0],p[1],fanwei1,fanwei2,fw1,fw2)
+
+            assert (pid != id)
+            new_branch[i] = np.asarray([
+                id, rand_node_type
+                if random_color else nodetype, p[0], p[1], p[2], r, pid, c])
+
+        # Check if any tail should be connected to its tail
+        tail = new_branch[0]
+        matched, minidx = self.match(tail[2:5], tail[5])
+        if matched and self._data[minidx, 6] is -2:
+            self._data[minidx, 6] = tail[0]
+
+        self._data = np.vstack((self._data, new_branch))
     def _prune_leaves(self):
         # Find all the leaves
         childctr = Counter(self._data[:, 6])

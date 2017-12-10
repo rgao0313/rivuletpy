@@ -21,6 +21,8 @@ class Tracer(object):
 
     def trace(self):
         pass
+    def trace2(self):
+        pass
 
 
 class R2Tracer(Tracer):
@@ -68,7 +70,26 @@ class R2Tracer(Tracer):
             swc.prune()
 
         return swc, self._soma
+    def trace2(self, path,border,img, threshold):
+        '''
+        The main entry for Rivulet2
+        '''
+        # print('we are on trace2 now')
+        self._bimg = (img > threshold).astype('int')  # Segment image
+        if not self._silent: print('(1) -- Detecting Soma...', end='')
+        self._soma = Soma()
+        self._soma.detect(self._bimg, not self._quality, self._silent)
+        self._prep()
 
+        # Iterative Back Tracking with Erasing
+        if not self._silent:
+            print('(5) --Start Backtracking...')
+        swc = self._iterative_backtrack2(path,border)
+
+        if self._clean:
+            swc.prune()
+
+        return swc, self._soma
     def _prep(self):
         self._nforeground = self._bimg.sum()        
         # Dilate bimg to make it less strict for the big gap criteria
@@ -292,6 +313,93 @@ class R2Tracer(Tracer):
                 elif branch.touch_idx >= 0:
                     pidx = branch.touch_idx
                 swc.add_branch(branch, pidx)
+        return swc
+
+    def _iterative_backtrack2(self,path,border):
+        print(path)
+        # Initialise swc with the soma centroid
+        swc = SWC(self._soma)
+        swc.add(np.reshape(
+            np.asarray([
+                0, 1, self._soma.centroid[0], self._soma.centroid[1], self._soma.centroid[2],
+                self._soma.radius, -1, 1.
+            ]), (1, 8)))
+
+        if not self._silent:
+            self._pbar = tqdm(total=math.floor(self._nforeground * self._target_coverage))
+
+        # Loop for all branches
+        while self._coverage < self._target_coverage:
+            self._update_coverage()
+            # Find the geodesic furthest point on foreground time-crossing-map
+            srcpt = np.asarray(np.unravel_index(self._tt.argmax(), self._tt.shape)).astype('float64')
+            branch = R2Branch()
+            branch.add(srcpt, 1., 1.)
+
+            # Erase the source point just in case
+            self._tt[math.floor(srcpt[0]), math.floor(srcpt[1]), math.floor(srcpt[2])] = -2
+            keep = True
+
+            # Loop for 1 back-tracking iteration
+            while True:
+                self._step(branch)
+                # print(branch.pts)
+                head = branch.pts[-1]
+                tt_head = self._tt[math.floor(head[0]), math.floor(head[1]), math.floor(head[2])]
+
+                # 1. Check out of bound
+                if not inbound(head, self._bimg.shape):
+                    branch.slice(0, -1)
+                    break
+
+                # 2. Check for the large gap criterion
+                if branch.gap > np.asarray(branch.radius).mean() * 8:
+                    break
+                else:
+                    branch.reset_gap()
+
+                # 3. Check if Soma has been reached
+                if tt_head == -3:
+                    keep = True if branch.branchlen > self._soma.radius * 3 else False
+                    branch.reached_soma = True
+                    break
+
+                # 4. Check if not moved for 15 iterations
+                if branch.is_stucked():
+                    break
+
+                # 5. Check for low online confidence
+                if branch.low_conf:
+                    keep = False
+                    break
+
+                # 6. Check for branch merge
+                # Consider reaches previous explored area traced with branch
+                # Note: when the area was traced due to noise points
+                # (erased with -2), not considered as 'reached'
+                if tt_head == -1:
+                    branch.touched = True
+                    if swc.size() == 1:
+                        break
+
+                    matched, matched_idx = swc.match(head, branch.radius[-1])
+                    if matched > 0:
+                        branch.touch_idx = matched_idx
+                        break
+
+                    if branch.steps_after_reach > 200:
+                        break
+
+            self._erase(branch)
+
+            # Add to SWC if it was decided to be kept
+            if keep:
+                pidx = None
+                if branch.reached_soma:
+                    pidx = 0;
+                elif branch.touch_idx >= 0:
+                    pidx = branch.touch_idx
+                swc.add_branch2(path,border,branch, pidx)
         return swc
 
 class Branch(object):

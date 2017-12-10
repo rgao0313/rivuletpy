@@ -17,7 +17,6 @@ def cropimg(cropx,cropy,origintif):
     shapex,shapey,shapez=img.shape
     # if(shapex<cropx or shapey<cropy):
     #     smallswc(img,threshold,savepath+'.swc')
-
     # print(shapex,shapey,shapez)
     if shapey< cropy:
         for j in range(cropx,shapex,cropx):
@@ -115,9 +114,10 @@ def combinedswc(path):
     for swc in glob.glob(os.path.join(path, '*.swc')):
         a = loadswc(swc)
         tswc = a.copy()
-        tswc[:, 0] += count  # change the order
-        tswc[:, -1] += count
-        count = a.shape[0] + count + 2#The follow three lines are for checking errors
+
+        tswc[:, 0] += count  # change the order of the id
+        tswc[:, -1] += count # change the order of parent id
+        count = a.shape[0] + count + 2 # The follow three lines are for checking errors
         # saveswc(swc.split('.')[0]+'copy.swc',tswc)
         # print(swc,tswc[0, 0],tswc[0,-1])
         # print(swc,tswc[-1,0],tswc[-1,-1])

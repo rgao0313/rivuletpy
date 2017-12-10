@@ -4,7 +4,7 @@ from rivuletpy.utils.cropswc import *
 import multiprocessing as mp
 import time
 
-origintif="/home/neuron/桌面/test/2.tif"
+origintif="/home/neuron/test/7.tif"
 cropx=200
 cropy=100
 thresholdt=10

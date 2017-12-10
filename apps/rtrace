@@ -115,7 +115,8 @@ if __name__ == '__main__':
 
     # Run rivulet2 for the first time
     tracer = R2Tracer(quality=args.quality, silent=args.silent, speed=args.speed, clean=args.clean)
-    swc, soma = tracer.trace(img, args.threshold)
+    # swc, soma = tracer.trace(img, args.threshold)
+    swc, soma = tracer.trace2(img, args.threshold)
     swc.reset(crop_region, args.zoom_factor)
     outpath = args.out if args.out else os.path.splitext(args.file)[0] + '.r2.swc'
     swc.save(outpath)
