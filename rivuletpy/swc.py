@@ -56,16 +56,17 @@ class SWC(object):
 
         self._data = np.vstack((self._data, new_branch))
 
-    def add_branch2(self, path,border,branch, pidx=None, random_color=False):
+    def add_branch2(self, path,cropx,cropy,border,branch, pidx=None, random_color=False):
         '''
         Add a branch to swc.
         Note: This swc is special with N X 8 shape. The 8-th column is the online confidence
         '''
-        print('we are at branch2 now')
-        cropx = 200\
-            # int(path.split('/')[-2].split('_')[-2])
-        cropy =100 \
-            # int(path.split('/')[-2].split('_')[-1])
+        # print(path)
+        # cropx = 200\
+        #     # int(path.split('/')[-2].split('_')[-2])
+        # cropy =100 \
+        #     # int(path.split('/')[-2].split('_')[-1])
+        print(cropx,cropy)
 
         a = int(path.split("_")[1])
         b = int(path.split("_")[0])

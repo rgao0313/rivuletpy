@@ -71,6 +71,7 @@ with open(folderpath+'jsoninfo/detailedinfo.txt') as f:
             shapex=int(item.split('\t')[2])#the shape of tif in x dimension
             shapey=int(item.split('\t')[3])#the shape of tif in y dimension
             origintif=folderpath+filename
+            print(filename)
             folder=origintif.split('.')[0]+'_'+str(cropx)+'_'+str(cropy)#name of the folder and swc
             if(shapex<cropx and shapey<cropy):#if the size of tif is too small to be cropped, it will be processed in smallswc function
                 smallswc(origintif,threshold,folder)

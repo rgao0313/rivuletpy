@@ -70,7 +70,7 @@ class R2Tracer(Tracer):
             swc.prune()
 
         return swc, self._soma
-    def trace2(self, path,border,img, threshold):
+    def trace2(self, path,cropx,cropy,border,img, threshold):
         '''
         The main entry for Rivulet2
         '''
@@ -84,7 +84,7 @@ class R2Tracer(Tracer):
         # Iterative Back Tracking with Erasing
         if not self._silent:
             print('(5) --Start Backtracking...')
-        swc = self._iterative_backtrack2(path,border)
+        swc = self._iterative_backtrack2(path,cropx,cropy,border)
 
         if self._clean:
             swc.prune()
@@ -315,7 +315,7 @@ class R2Tracer(Tracer):
                 swc.add_branch(branch, pidx)
         return swc
 
-    def _iterative_backtrack2(self,path,border):
+    def _iterative_backtrack2(self,path,cropx,cropy,border):
         print(path)
         # Initialise swc with the soma centroid
         swc = SWC(self._soma)
@@ -399,7 +399,7 @@ class R2Tracer(Tracer):
                     pidx = 0;
                 elif branch.touch_idx >= 0:
                     pidx = branch.touch_idx
-                swc.add_branch2(path,border,branch, pidx)
+                swc.add_branch2(path,cropx,cropy,border,branch, pidx)
         return swc
 
 class Branch(object):
